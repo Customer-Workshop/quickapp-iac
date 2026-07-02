@@ -1,0 +1,119 @@
+# Namespace provisioning request for the Order Service.
+# Follows the platform pattern defined in platform-engineering-shared-services.
+# Apply via: kubectl apply -f k8s/namespaces/order-service-namespace.yaml
+#
+# NOTE: In the platform workflow, namespaces are provisioned via AWS CDK in
+# platform-engineering-shared-services/cdk/bin/cdk.ts by adding an entry to
+# the `namespaces` array. This manifest provides the equivalent Kubernetes
+# resources for documentation and manual provisioning.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: decomposition-dev
+  labels:
+    environment: dev
+    team: dotnet-angular-monolith
+    app.kubernetes.io/part-of: quickapp
+---
+# Resource Quota — mirrors platform-engineering-shared-services/k8s/resource-quotas/standard.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: standard-quota
+  namespace: decomposition-dev
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+    pods: "20"
+    services: "10"
+    persistentvolumeclaims: "5"
+---
+# Limit Range — default container resource constraints
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: standard-limits
+  namespace: decomposition-dev
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 256Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      max:
+        cpu: "2"
+        memory: 2Gi
+---
+# Network Policy: Default deny all ingress/egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: decomposition-dev
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Network Policy: Allow DNS resolution
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: decomposition-dev
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Network Policy: Allow ingress from ingress-nginx namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: decomposition-dev
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+---
+# Network Policy: Allow Prometheus scraping from monitoring namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: decomposition-dev
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 9090

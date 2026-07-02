@@ -7,7 +7,7 @@ image:
 
 service:
   type: ClusterIP
-  port: 5003
+  port: 8080
 
 ingress:
   enabled: true
@@ -15,14 +15,14 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
-    - host: order-service.example.com
+    - host: order-service.workshop.local
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: order-service-tls
       hosts:
-        - order-service.example.com
+        - order-service.workshop.local
 
 resources:
   requests:
@@ -34,10 +34,41 @@ resources:
 
 healthCheck:
   path: /healthz
-  port: 5003
+  port: 8080
 
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
+
+serviceMonitor:
+  enabled: true
+  path: /metrics
+  interval: 30s
+
+networkPolicy:
+  enabled: true
+  egressRules:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: rabbitmq
+      ports:
+        - protocol: TCP
+          port: 5672
+
+env: []
+
+configMap:
+  enabled: false
+
+secret:
+  enabled: false

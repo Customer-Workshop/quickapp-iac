@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-service
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: quickapp
+    app.kubernetes.io/component: order-service
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Cognition-Partner-Workshops/quickapp-iac
+    targetRevision: main
+    path: charts/order-service
+    helm:
+      valueFiles:
+        - ../../environments/dev/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: decomposition-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
