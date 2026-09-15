@@ -1,0 +1,19 @@
+{
+  "name": "quickapp-iac-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Post-deployment smoke tests for the quickapp Helm charts",
+  "scripts": {
+    "stub": "tsx stub/server.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:deployed": "playwright test --project deployed",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0",
+    "yaml": "^2.9.1"
+  }
+}

@@ -74,6 +74,10 @@ done
 - Helm 3.x installed
 - Container images pushed to ECR (build from the microservices and microfrontends repos)
 
+## End-to-end smoke tests
+
+A Playwright smoke suite lives in [`e2e/`](e2e/README.md). It validates health endpoints, HTTPS redirects, MFE page loads/`remoteEntry.js`, and gateway API routes — locally against a stub server (`cd e2e && npm run test:e2e`) or against a deployed environment (`TARGET_ENV=staging npm run test:e2e:deployed`). See [e2e/README.md](e2e/README.md) for details.
+
 ## Related Repositories
 
 | Repo | Purpose |
